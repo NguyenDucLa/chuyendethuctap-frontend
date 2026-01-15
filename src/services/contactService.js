@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_URL = "http://localhost:8080/api/contacts";
+const API_URL = "https://booking-backend-ipxm.onrender.com/api/contacts";
+// const API_URL = "http://localhost:8080/api/contacts";
 
 // Gửi liên hệ
 export const sendContact = async (data) => {

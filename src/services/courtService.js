@@ -1,8 +1,12 @@
 import axios from 'axios';
+// Thay thế đoạn đầu bằng:
+const API_URL = "https://booking-backend-ipxm.onrender.com/api/courts";
+const BOOKING_URL = "https://booking-backend-ipxm.onrender.com/api/bookings";
+const CATEGORY_API_URL = "https://booking-backend-ipxm.onrender.com/api/categories";
 
-const API_URL = "http://localhost:8080/api/courts";
-const BOOKING_URL = "http://localhost:8080/api/bookings";
-const CATEGORY_API_URL = "http://localhost:8080/api/categories";
+// const API_URL = "http://localhost:8080/api/courts";
+// const BOOKING_URL = "http://localhost:8080/api/bookings";
+// const CATEGORY_API_URL = "http://localhost:8080/api/categories";
 
 // --- PHẦN 1: PUBLIC (Ai cũng gọi được) ---
 
