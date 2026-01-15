@@ -1,162 +1,174 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { Container, Form, Button, Row, Col, Alert } from 'react-bootstrap';
+// Thêm useSearchParams
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { registerUser } from '../../services/authService';
 import { toast } from 'react-toastify';
-import api from '../../services/api';
-import { useNavigate, Link } from 'react-router-dom';
 
 const RegisterPage = () => {
     const navigate = useNavigate();
     
-    // State lưu dữ liệu form
-    const [formData, setFormData] = useState({
-        fullName: '',
-        email: '',
-        phone: '',
-        password: '',
-        confirmPassword: ''
-    });
+    // 1. Lấy tham số trên URL (?mode=admin)
+    const [searchParams] = useSearchParams();
+    const isAdminMode = searchParams.get('mode') === 'admin';
 
-    // Hàm xử lý khi nhập liệu
+    const [formData, setFormData] = useState({
+        email: '', password: '', fullName: '', phone: '', address: ''
+    });
+    const [loading, setLoading] = useState(false);
+
+    // Xóa mấy cái state message/error cũ đi vì dùng toast rồi
+    // const [message, setMessage] = useState('');
+    // const [error, setError] = useState('');
+
     const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
+        setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    // Hàm xử lý khi bấm Đăng ký
-    const handleRegister = async (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-
-        // 1. Kiểm tra mật khẩu nhập lại có khớp không
-        if (formData.password !== formData.confirmPassword) {
-            toast.error("Mật khẩu nhập lại không khớp!");
+        
+        // Validation giữ nguyên
+        if (formData.password.length < 6) {
+            toast.error("Mật khẩu phải có ít nhất 6 ký tự!");
             return;
         }
+        const phoneRegex = /^[0-9]{10}$/;
+        if (!phoneRegex.test(formData.phone)) {
+            toast.error("Số điện thoại không hợp lệ!");
+            return;
+        }
+        
+        setLoading(true);
 
         try {
-            // 2. Gọi API đăng ký
-            // Backend cần: fullName, email, password, phone (Không cần confirmPassword)
-            const dataToSend = {
-                fullName: formData.fullName,
-                email: formData.email,
-                phone: formData.phone,
-                password: formData.password
-            };
-
-            await api.register(dataToSend);
+            const data = await registerUser(formData);
             
-            // 3. Thành công
-            toast.success("Đăng ký thành công! Vui lòng đăng nhập.");
-            navigate('/login'); // Chuyển hướng sang trang đăng nhập
-
-        } catch (error) {
-            // Xử lý lỗi (ví dụ: Email đã tồn tại)
-            const errorMsg = error.response?.data?.message || "Đăng ký thất bại! Email có thể đã tồn tại.";
-            toast.error(errorMsg);
+            if (data.message === "Đăng ký thành công!") {
+                
+                // --- LOGIC PHÂN LUỒNG ---
+                if (isAdminMode) {
+                    // Nếu là Admin thêm
+                    toast.success("Đã thêm người dùng mới thành công!");
+                    navigate('/admin/users'); // Quay về trang quản lý
+                } else {
+                    // Nếu là Khách đăng ký
+                    toast.success("Đăng ký thành công! Đang chuyển hướng...");
+                    setTimeout(() => { navigate('/login'); }, 1500);
+                }
+                
+            } else {
+                toast.error(data.message);
+                setLoading(false);
+            }
+        } catch (err) {
+            if (err.response && err.response.data) {
+                toast.error(err.response.data.message || "Đăng ký thất bại!");
+            } else {
+                toast.error("Lỗi kết nối.");
+            }
+            setLoading(false);
         }
     };
 
     return (
-        <div 
-            className="d-flex justify-content-center align-items-center vh-100" 
-            style={{
-                background: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
-                minHeight: '100vh'
-            }}
-        >
-            <div 
-                className="card p-5 shadow-lg border-0" 
-                style={{ 
-                    width: '500px', 
-                    borderRadius: '15px',
-                    background: 'rgba(255, 255, 255, 0.95)',
-                    backdropFilter: 'blur(10px)'
-                }}
-            >
-                <div className="text-center mb-4">
-                    <h2 className="fw-bold text-primary mb-2">📝 Đăng Ký Tài Khoản</h2>
-                    <p className="text-muted">Tạo tài khoản để đặt sân ngay hôm nay!</p>
-                </div>
-                
-                <form onSubmit={handleRegister}>
-                    <div className="row">
-                        <div className="col-md-6 mb-3">
-                            <label className="form-label fw-semibold">👤 Họ và Tên</label>
-                            <input 
-                                type="text" name="fullName" className="form-control form-control-lg rounded-pill" placeholder="Ví dụ: Nguyễn Văn A"
-                                value={formData.fullName} onChange={handleChange} required 
-                                style={{ border: '2px solid #ddd', transition: 'border-color 0.3s' }}
-                                onFocus={(e) => e.target.style.borderColor = '#0984e3'}
-                                onBlur={(e) => e.target.style.borderColor = '#ddd'}
-                            />
-                        </div>
+        <div className="d-flex align-items-center py-5" style={{ backgroundColor: '#1a1d20', minHeight: '100vh' }}>
+            <Container fluid>
+                <Row className="justify-content-center">
+                    
+                    {/* Cột Trái */}
+                    <Col md={6} lg={4} className="bg-dark p-5 d-flex flex-column justify-content-center" 
+                         style={{ minHeight: '85vh', borderRadius: '20px 0 0 20px', border: '1px solid #333' }}>
                         
-                        <div className="col-md-6 mb-3">
-                            <label className="form-label fw-semibold">📧 Email</label>
-                            <input 
-                                type="email" name="email" className="form-control form-control-lg rounded-pill" placeholder="name@example.com"
-                                value={formData.email} onChange={handleChange} required 
-                                style={{ border: '2px solid #ddd', transition: 'border-color 0.3s' }}
-                                onFocus={(e) => e.target.style.borderColor = '#0984e3'}
-                                onBlur={(e) => e.target.style.borderColor = '#ddd'}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="mb-3">
-                        <label className="form-label fw-semibold">📞 Số Điện Thoại</label>
-                        <input 
-                            type="text" name="phone" className="form-control form-control-lg rounded-pill" placeholder="09xxx..."
-                            value={formData.phone} onChange={handleChange} required 
-                            style={{ border: '2px solid #ddd', transition: 'border-color 0.3s' }}
-                            onFocus={(e) => e.target.style.borderColor = '#0984e3'}
-                            onBlur={(e) => e.target.style.borderColor = '#ddd'}
-                        />
-                    </div>
-
-                    <div className="row">
-                        <div className="col-md-6 mb-3">
-                            <label className="form-label fw-semibold">🔒 Mật Khẩu</label>
-                            <input 
-                                type="password" name="password" className="form-control form-control-lg rounded-pill" 
-                                value={formData.password} onChange={handleChange} required 
-                                style={{ border: '2px solid #ddd', transition: 'border-color 0.3s' }}
-                                onFocus={(e) => e.target.style.borderColor = '#0984e3'}
-                                onBlur={(e) => e.target.style.borderColor = '#ddd'}
-                            />
+                        <div className="text-center mb-4">
+                            {/* Đổi tiêu đề dựa theo Mode */}
+                            <h2 className="fw-bold text-warning text-uppercase">
+                                {isAdminMode ? "THÊM NGƯỜI DÙNG" : "TẠO TÀI KHOẢN"}
+                            </h2>
+                            <p className="text-white-50">
+                                {isAdminMode ? "Tạo tài khoản mới cho khách hàng" : "Tham gia cộng đồng bóng đá lớn nhất"}
+                            </p>
                         </div>
 
-                        <div className="col-md-6 mb-3">
-                            <label className="form-label fw-semibold">🔒 Nhập Lại Mật Khẩu</label>
-                            <input 
-                                type="password" name="confirmPassword" className="form-control form-control-lg rounded-pill" 
-                                value={formData.confirmPassword} onChange={handleChange} required 
-                                style={{ border: '2px solid #ddd', transition: 'border-color 0.3s' }}
-                                onFocus={(e) => e.target.style.borderColor = '#0984e3'}
-                                onBlur={(e) => e.target.style.borderColor = '#ddd'}
-                            />
+                        <Form onSubmit={handleSubmit}>
+                            {/* ... Các ô input giữ nguyên ... */}
+                            <Form.Group className="mb-3">
+                                <Form.Label className="text-white fw-semibold">Họ và Tên</Form.Label>
+                                <Form.Control type="text" name="fullName" required onChange={handleChange} 
+                                    className="bg-secondary text-white border-0 py-2" />
+                            </Form.Group>
+
+                            <Form.Group className="mb-3">
+                                <Form.Label className="text-white fw-semibold">Email</Form.Label>
+                                <Form.Control type="email" name="email" required onChange={handleChange} 
+                                    className="bg-secondary text-white border-0 py-2" />
+                            </Form.Group>
+
+                            <Form.Group className="mb-3">
+                                <Form.Label className="text-white fw-semibold">Số điện thoại</Form.Label>
+                                <Form.Control type="text" name="phone" required onChange={handleChange} 
+                                    className="bg-secondary text-white border-0 py-2" />
+                            </Form.Group>
+
+                            <Form.Group className="mb-3">
+                                <Form.Label className="text-white fw-semibold">Địa chỉ</Form.Label>
+                                <Form.Control type="text" name="address" onChange={handleChange} 
+                                    className="bg-secondary text-white border-0 py-2" />
+                            </Form.Group>
+
+                            <Form.Group className="mb-4">
+                                <Form.Label className="text-white fw-semibold">Mật khẩu</Form.Label>
+                                <Form.Control type="password" name="password" required onChange={handleChange} 
+                                    className="bg-secondary text-white border-0 py-2" />
+                            </Form.Group>
+
+                            <Button variant="warning" type="submit" className="w-100 fw-bold py-3 text-dark text-uppercase shadow-lg mb-3" disabled={loading}>
+                                {loading ? 'Đang xử lý...' : (isAdminMode ? 'THÊM NGƯỜI DÙNG' : 'ĐĂNG KÝ NGAY')}
+                            </Button>
+                        </Form>
+
+                        {/* Nếu là Admin thì hiện nút quay lại Admin, Khách thì hiện nút Login */}
+                        <div className="text-center mt-2">
+                            {isAdminMode ? (
+                                <Link to="/admin/users" className="text-secondary text-decoration-none">
+                                    <i className="bi bi-arrow-left"></i> Quay lại danh sách
+                                </Link>
+                            ) : (
+                                <>
+                                    <span className="text-white-50">Đã có tài khoản? </span>
+                                    <Link to="/login" className="text-warning fw-bold text-decoration-none">
+                                        Đăng nhập
+                                    </Link>
+                                </>
+                            )}
                         </div>
-                    </div>
+                    </Col>
 
-                    <button 
-                        type="submit" 
-                        className="btn btn-success w-100 btn-lg rounded-pill fw-bold mb-3"
-                        style={{
-                            background: 'linear-gradient(135deg, #00b894 0%, #00cec9 100%)',
-                            border: 'none',
-                            transition: 'transform 0.2s'
-                        }}
-                        onMouseEnter={(e) => e.target.style.transform = 'scale(1.05)'}
-                        onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-                    >
-                        🚀 Đăng Ký Ngay
-                    </button>
-                </form>
-
-                <div className="text-center">
-                    <p className="mb-0 text-muted">Đã có tài khoản? 
-                        <Link to="/login" className="text-primary fw-bold ms-1">Đăng nhập tại đây</Link>
-                    </p>
-                </div>
-            </div>
+                    {/* Cột Phải (Ảnh) - Giữ nguyên */}
+                    <Col md={6} lg={5} className="d-none d-md-block p-0">
+                        <div style={{
+                            backgroundImage: 'url("https://img.lovepik.com/free-png/20211209/lovepik-soccer-player-png-image_401442736_wh1200.png")',
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                            height: '100%',
+                            minHeight: '85vh',
+                            borderRadius: '0 20px 20px 0',
+                            position: 'relative'
+                        }}>
+                            {/* Overlay giữ nguyên */}
+                            <div style={{
+                                position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                                background: 'linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.8))',
+                                borderRadius: '0 20px 20px 0',
+                                display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '40px'
+                            }}>
+                                <h2 className="text-white fw-bold display-5">Join The Game</h2>
+                                <p className="text-white-50 fs-5">Kết nối, đặt sân và thi đấu ngay hôm nay.</p>
+                            </div>
+                        </div>
+                    </Col>
+                </Row>
+            </Container>
         </div>
     );
 };
