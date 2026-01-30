@@ -28,24 +28,36 @@ const RegisterPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         
-        // Validation giữ nguyên
+        // 1. Kiểm tra Mật khẩu
         if (formData.password.length < 6) {
             toast.error("Mật khẩu phải có ít nhất 6 ký tự!");
             return;
         }
+
+        // 2. Kiểm tra Số điện thoại (10 số)
         const phoneRegex = /^[0-9]{10}$/;
         if (!phoneRegex.test(formData.phone)) {
-            toast.error("Số điện thoại không hợp lệ!");
+            toast.error("Số điện thoại không hợp lệ (Phải đủ 10 số)!");
+            return;
+        }
+
+        // 3. Kiểm tra Email (MỚI THÊM)
+        // Regex này bắt buộc có: ký tự + @ + ký tự + dấu chấm + đuôi (ít nhất 2 ký tự)
+        // Ví dụ sai: abc@gamil (thiếu .com) -> Lỗi
+        // Ví dụ đúng: abc@gmail.com -> OK
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!emailRegex.test(formData.email)) {
+            toast.error("Email không hợp lệ");
             return;
         }
         
+        // --- GỌI API ---
         setLoading(true);
 
         try {
             const data = await registerUser(formData);
             
             if (data.message === "Đăng ký thành công!") {
-                
                 // --- LOGIC PHÂN LUỒNG ---
                 if (isAdminMode) {
                     // Nếu là Admin thêm
@@ -56,7 +68,6 @@ const RegisterPage = () => {
                     toast.success("Đăng ký thành công! Đang chuyển hướng...");
                     setTimeout(() => { navigate('/login'); }, 1500);
                 }
-                
             } else {
                 toast.error(data.message);
                 setLoading(false);
@@ -65,7 +76,7 @@ const RegisterPage = () => {
             if (err.response && err.response.data) {
                 toast.error(err.response.data.message || "Đăng ký thất bại!");
             } else {
-                toast.error("Lỗi kết nối.");
+                toast.error("Lỗi kết nối. Vui lòng thử lại!");
             }
             setLoading(false);
         }

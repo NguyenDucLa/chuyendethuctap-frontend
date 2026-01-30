@@ -45,7 +45,11 @@ const LoginPage = () => {
 
                 // 3. Chờ 1.5 giây để người dùng kịp đọc thông báo rồi mới chuyển trang
                 setTimeout(() => {
-                    window.location.href = "/"; 
+                    if (data.role === 'ADMIN') {
+                        window.location.href = "/admin"; // Admin về Dashboard
+                    } else {
+                        window.location.href = "/"; // Khách về Trang chủ
+                    }
                 }, 1500);
             } else {
                 // Báo lỗi (Màu đỏ)

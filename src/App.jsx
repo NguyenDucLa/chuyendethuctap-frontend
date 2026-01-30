@@ -9,7 +9,8 @@ import 'react-toastify/dist/ReactToastify.css';
 // Components
 import MyNavbar from './components/MyNavbar';
 import MyFooter from './components/MyFooter';
-import ProtectedRoute from './components/ProtectedRoute'; // Import bảo vệ Admin
+import Chatbot from './components/Chatbot'; // <--- IMPORT CHATBOT
+import ProtectedRoute from './components/ProtectedRoute';
 
 // Client Pages
 import HomePage from './pages/client/HomePage';
@@ -25,7 +26,6 @@ import PaymentSuccessPage from './pages/client/PaymentSuccessPage';
 import PaymentFailedPage from './pages/client/PaymentFailedPage';
 import ContactPage from './pages/client/ContactPage';
 
-
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminContactPage from './pages/admin/AdminContactPage';
@@ -34,7 +34,7 @@ import AdminBookingPage from './pages/admin/AdminBookingPage';
 import AdminUserPage from './pages/admin/AdminUserPage';
 import AdminCategoryPage from './pages/admin/AdminCategoryPage';
 
-// --- COMPONENT NỘI DUNG CHÍNH (Để dùng được useLocation) ---
+// --- COMPONENT NỘI DUNG CHÍNH ---
 function AppContent() {
   const location = useLocation();
 
@@ -76,13 +76,16 @@ function AppContent() {
           <Route path="/admin/bookings" element={<ProtectedRoute><AdminBookingPage /></ProtectedRoute>} />
           <Route path="/admin/users" element={<ProtectedRoute><AdminUserPage /></ProtectedRoute>} />
           <Route path="/admin/categories" element={<ProtectedRoute><AdminCategoryPage /></ProtectedRoute>} />
-          {/* Sau này thêm các route con của admin ở đây */}
-
         </Routes>
       </div>
 
-      {/* Chỉ hiện Footer Khách hàng nếu KHÔNG phải trang Admin */}
-      {!isAdminRoute && <MyFooter />}
+      {/* Chỉ hiện Footer và Chatbot nếu KHÔNG phải trang Admin */}
+      {!isAdminRoute && (
+        <>
+          <MyFooter />
+          <Chatbot /> {/* <--- CHATBOT NẰM Ở ĐÂY */}
+        </>
+      )}
 
       <ToastContainer
         position="top-right"
