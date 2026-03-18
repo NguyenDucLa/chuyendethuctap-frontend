@@ -1,14 +1,14 @@
 import axios from 'axios';
 // Thay thế đoạn đầu bằng:
-// const API_URL = "https://booking-backend-ipxm.onrender.com/api/courts";
-// const BOOKING_URL = "https://booking-backend-ipxm.onrender.com/api/bookings";
-// const CATEGORY_API_URL = "https://booking-backend-ipxm.onrender.com/api/categories";
-// const CHAT_URL = "https://booking-backend-ipxm.onrender.com/api/chat";
+const API_URL = "https://booking-backend-ipxm.onrender.com/api/courts";
+const BOOKING_URL = "https://booking-backend-ipxm.onrender.com/api/bookings";
+const CATEGORY_API_URL = "https://booking-backend-ipxm.onrender.com/api/categories";
+const CHAT_URL = "https://booking-backend-ipxm.onrender.com/api/chat";
 
-const API_URL = "http://localhost:8080/api/courts";
-const BOOKING_URL = "http://localhost:8080/api/bookings";
-const CATEGORY_API_URL = "http://localhost:8080/api/categories";
-const CHAT_URL = "http://localhost:8080/api/chat"; 
+//const API_URL = "http://localhost:8080/api/courts";
+//const BOOKING_URL = "http://localhost:8080/api/bookings";
+// const CATEGORY_API_URL = "http://localhost:8080/api/categories";
+// const CHAT_URL = "http://localhost:8080/api/chat"; 
 
 // --- PHẦN 1: PUBLIC (Ai cũng gọi được) ---
 
@@ -216,7 +216,7 @@ export const deleteCategory = async (id) => {
 };
 
 // --- CHATBOT API ---
-// Nếu đang test ở máy thì dùng localhost, nếu up lên mạng thì đổi thành link Render
+
 
 
 export const sendMessageToBot = async (message) => {
