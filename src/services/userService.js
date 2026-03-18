@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const API_URL = "https://booking-backend-ipxm.onrender.com/api/users";
-//const API_URL = "http://localhost:8080/api/users";
+//const API_URL = "https://booking-backend-ipxm.onrender.com/api/users";
+const API_URL = "http://localhost:8080/api/users";
 
 // 1. Lấy thông tin user (Private - Cần Token)
 export const getUserProfile = async (userId) => {
